@@ -18,7 +18,7 @@ class DebianBox(base.BaseDevice):
     A linux machine running an ssh server.
     '''
 
-    prompt = ['root\\@.*:.*#', '/ # ', ".*:~ #" ]
+    prompt = ['root\\@.*:.*#', '/ # ', ".*:~ #",".+@.+:~\$"]
 
     def __init__(self,
                  name,
@@ -46,7 +46,7 @@ class DebianBox(base.BaseDevice):
         self.location = location
         cprint("%s device console = %s" % (name, colored(color, color)), None, attrs=['bold'])
         try:
-            i = self.expect(["yes/no", "assword:", "Last login"], timeout=30)
+            i = self.expect(["yes/no", "assword:", "Last login", "BusyBox"], timeout=30)
         except pexpect.TIMEOUT as e:
             raise Exception("Unable to connect to %s." % name)
         except pexpect.EOF as e:
