@@ -49,12 +49,6 @@ class LinuxBootTest(unittest2.TestCase):
         None
 
     def testWrapper(self):
-        #print "self.result_grade :"
-        #print self.result_grade
-       
-        #lib.common.test_msg("\n\n\n\nself.result_grade :")
-        #lib.common.test_msg(self.result_grade)        
-
         if not board.isalive():
             self.result_grade = "SKIP"
             self.skipTest("Board is not alive")
