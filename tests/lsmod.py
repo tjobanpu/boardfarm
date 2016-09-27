@@ -12,9 +12,13 @@ from devices import board, wan, lan, wlan, prompt
 class KernelModules(rootfs_boot.RootFSBootTest):
     '''lsmod shows loaded kernel modules.'''
     def runTest(self):
-        board.check_output('lsmod | wc -l')
-        tmp = re.search('\d+', board.before)
-        num = int(tmp.group(0)) - 1 # subtract header line
-        board.check_output('lsmod | sort')
+        board.sendline('\nlsmod | wc -l')
+        board.expect('lsmod ')
+        #board.expect('(\d+)\r\n')
+        board.expect('(\d+)')
+        num = int(board.match.group(1)) - 1 # subtract header line
+        board.expect(prompt)
+        board.sendline('lsmod | sort')
+        board.expect(prompt)
         self.result_message = '%s kernel modules are loaded.' % num
         self.logged['num_loaded'] = num
