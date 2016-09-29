@@ -10,8 +10,6 @@ class CurlSSLGood(rootfs_boot.RootFSBootTest):
         board.expect(prompt)
         checks = [ 
                    'https://sha256.badssl.com/',
-                   'https://1000-sans.badssl.com/',
-                   'https://mozilla-modern.badssl.com/',
                    'https://dh2048.badssl.com/',
                    'https://hsts.badssl.com/',
                    'https://upgrade.badssl.com/',
@@ -31,14 +29,14 @@ class CurlSSLBad(rootfs_boot.RootFSBootTest):
         board.sendline('opkg install ca-certificates')
         board.expect(prompt)
         checks = [
-                   ('https://expired.badssl.com/', 'certificate has expired'),
-                   ('https://wrong.host.badssl.com/', 'no alternative certificate subject name matches target host name'),
-                   ('https://subdomain.preloaded-hsts.badssl.com/', 'no alternative certificate subject name matches target host name'),
-                   ('https://self-signed.badssl.com/', 'unable to get local issuer certificate'),
-                   ('https://superfish.badssl.com/', 'unable to get local issuer certificate'),
-                   ('https://edellroot.badssl.com/', 'unable to get local issuer certificate'),
-                   ('https://dsdtestprovider.badssl.com/', 'unable to get local issuer certificate'),
-                   ('https://incomplete-chain.badssl.com/', 'unable to get local issuer certificate'),
+                   ('https://expired.badssl.com/', 'BADCERT_EXPIRED'),
+                   ('https://wrong.host.badssl.com/', 'BADCERT_CN_MISMATCH'),
+                   ('https://subdomain.preloaded-hsts.badssl.com/', 'BADCERT_CN_MISMATCH'),
+                   ('https://self-signed.badssl.com/', 'BADCERT_NOT_TRUSTED'),
+                   ('https://superfish.badssl.com/', 'Connection was reset by peer'),
+                   ('https://edellroot.badssl.com/', 'BADCERT_NOT_TRUSTED'),
+                   ('https://dsdtestprovider.badssl.com/', 'BADCERT_NOT_TRUSTED'),
+                   ('https://incomplete-chain.badssl.com/', 'BADCERT_NOT_TRUSTED'),
                  ]
         for check in checks:
             board.sendline('curl ' + check[0])
