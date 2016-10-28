@@ -1,0 +1,15 @@
+{
+    "ci40_dut":{
+        "board_type": "ci40",
+        "connection_type": "local_serial",
+        "conn_cmd": "miniterm.py -b 115200 /dev/ttyUSB0",
+        "lan_device": "192.167.0.6",
+        "location": "kl",
+        "wan_device": "10.40.9.2",
+        "wan_username": "root",
+        "wan_password": "root",
+        "lan_username": "root",
+        "lan_password": "root",
+        "notes": "Ci40 OpenWrt"
+    }
+}
