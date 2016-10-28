@@ -131,6 +131,8 @@ def main():
 
             if 'devices' in config.board:
                 setup_dynamic_devices(config)
+            else:
+                config.devices = []
 
         except Exception as e:
             print(e)
