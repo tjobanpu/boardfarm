@@ -110,8 +110,8 @@ def main():
                 tftp_servers = [ x['ipaddr'] for x in config.board['devices'] if 'tftpd-server' in x.get('options', "") ]
                 if len(tftp_servers) == 1:
                     tftp_server = tftp_servers[0]
-            elif tftp_server is None:
-                tftp_server = [ x['ipaddr'] for x in config.board['devices'] if x['name'] == 'wan' ][0]
+                else:
+                    tftp_server = [ x['ipaddr'] for x in config.board['devices'] if x['name'] == 'wan' ][0]
 
             # Connect to board
             config.console = board_decider.board(config.board['board_type'],
@@ -131,6 +131,8 @@ def main():
 
             if 'devices' in config.board:
                 setup_dynamic_devices(config)
+            else:
+                config.devices = []
 
         except Exception as e:
             print(e)
