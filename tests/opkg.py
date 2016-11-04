@@ -26,7 +26,7 @@ class OpkgList(rootfs_boot.RootFSBootTest):
 class CheckQosScripts(rootfs_boot.RootFSBootTest):
     '''Package "qos-scripts" is not installed.'''
     def runTest(self):
-        board.sendline('\nopkg list | grep qos-scripts')
+        board.sendline('\nopkg list-installed | grep qos-scripts')
         try:
             board.expect('qos-scripts - ', timeout=4)
         except:
