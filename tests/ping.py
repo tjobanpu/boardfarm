@@ -45,7 +45,7 @@ class LanDevPingRouter(rootfs_boot.RootFSBootTest):
             self.skipTest(msg)
         lan.sendline('\nping -c 5 192.168.1.1')
         lan.expect('PING ')
-        lan.expect('5 packets received', timeout=15)
+        lan.expect('5 * received', timeout=15)
         lan.expect(prompt)
 
 class LanDevPingWanDev(rootfs_boot.RootFSBootTest):
