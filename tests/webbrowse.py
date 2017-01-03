@@ -52,6 +52,7 @@ class RandomWebBrowse(rootfs_boot.RootFSBootTest):
                 lan.expect('Downloaded:', timeout=20)
             except Exception:
                 lan.sendcontrol('c')
+                raise
             lan.expect(prompt)
             lan.sendline("rm -rf /tmp/webbrowse-test")
             lan.expect(prompt)
