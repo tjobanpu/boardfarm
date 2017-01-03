@@ -23,7 +23,7 @@ class LinuxBootTest(unittest2.TestCase):
         self.logged = dict()
 
     def id(self):
-        return self.__class__.__name__
+        return "boardfarm." + self.__class__.__name__ + "()"
 
     def setUp(self):
         lib.common.test_msg("\n==================== Begin %s ====================" % self.__class__.__name__)
