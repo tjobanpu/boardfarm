@@ -27,4 +27,4 @@ class InterfacesShow(rootfs_boot.RootFSBootTest):
         else:
             msg = "0 interfaces are UP."
         self.result_message = msg
-        assert num_up >= 2
+        assert num_up >= 1
