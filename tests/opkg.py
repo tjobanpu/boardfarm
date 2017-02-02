@@ -41,3 +41,13 @@ class OpkgUpdate(rootfs_boot.RootFSBootTest):
         board.expect('All package lists updated')
         board.expect(prompt)
 
+class OpkgInstall(rootfs_boot.RootFSBootTest):
+    '''Opkg is able to install selected packages'''
+    def runTest(self):
+        # One package per feed: packages, openwrt-routing, openwrt-managements,
+        # ci40-platform-feed, telephony, luci
+        packages = [ "nano", "mrd6", "shtool", "glog", "miax", "luci-mod-rpc" ]
+        for pkg in packages:
+            board.sendline("\nopkg install {}".format(pkg))
+            board.expect("Configuring {}".format(pkg))
+            board.expect(prompt)
