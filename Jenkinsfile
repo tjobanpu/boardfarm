@@ -1,11 +1,62 @@
+properties([
+    buildDiscarder(logRotator(numToKeepStr: '10')),
+    parameters([
+        booleanParam(defaultValue: false,
+            description: 'Override distfeeds.conf links',
+            name: 'OVERRIDE_PACKAGES'),
+        stringParam(defaultValue: '',
+            description: 'Works only with OVERRIDE_PACKAGES set to true.\
+                          Path to a directory containing the packages folder,\
+                          if null defaults to the directory of the image',
+            name: "PACKAGES_PATH"),
+        stringParam(defaultValue:
+            'http://downloads.creatordev.io/openwrt/ci40-v1.1.0/pistachio/marduk/openwrt-v1.1.0-pistachio-marduk-squashfs-factory.ubi',
+            description:
+            'Either path directly to the image, or path to a Jenkins job from where to get the image',
+            name: "IMAGE_PATH"),
+    ])
+])
+
 node('boardfarm') {
     stage("Configure") {
         deleteDir()
 
+        def image_path = params.IMAGE_PATH.trim()
+        def image_name = ""
+
+        if(image_path) {
+            /* Match is not serialisable, we cannot save it in a variable to use later */
+            if(!(image_path.trim() =~ /(?<=\/)([^\/]+)\.ubi$/)) {
+                /* Since it's impossible to use in-built Groovy functions due to sandboxing this little script
+                   uses Jenkins XML api to get a list of artifacts and greps between the XML tags for the name of
+                   ubi file. */
+                image_name = sh (
+                    script: "curl -v --silent \
+                        '${params.IMAGE_PATH}/api/xml' \
+                        2>/dev/null | grep -o -E 'openwrt[^>]+.ubi' | head -n 1",
+                    returnStdout: true).trim()
+                image_path += "/artifact/bin/pistachio"
+            }
+            else {
+                image_name = (image_path.trim() =~ /(?<=\/)([^\/]+)\.ubi$/)[0][0]
+                image_path = image_path.replace(image_name, "")
+            }
+        }
+        else {
+            error("Passed null image path")
+        }
+
+        if(image_path.endsWith('/')) {
+            image_path = image_path.substring(0, image_path.length() - 1)
+        }
+
+        def dl_path = "${image_path}/${image_name}"
+        sh "wget '${dl_path}' -O ${env.WEBSERVER_PATH}/openwrt.ubi"
+
         sh "sshpass -p 'root' scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             ${env.OTA_DIRECTORY}/ota_update.sh ${env.OTA_DIRECTORY}/ota_verify.sh root@${env.WAN_IP}:~/"
             sh "sshpass -p 'root' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            root@${env.WAN_IP} '/root/ota_update.sh http://${env.WEBSERVER_IP}/openwrt_stable.ubi 192.168.0.2'"
+            root@${env.WAN_IP} '/root/ota_update.sh http://${env.WEBSERVER_IP}/openwrt.ubi 192.168.0.2'"
         sh 'sleep 180'
 
         sh 'echo "ifconfig eth0 up" > /dev/ttyUSB0'
@@ -24,6 +75,20 @@ node('boardfarm') {
         sh 'echo "sed -i \'$ a nameserver 8.8.4.4\' /etc/resolv.conf" > /dev/ttyUSB0'
         sh 'sleep 10'
 
+        if(params.OVERRIDE_PACKAGES) {
+            def feeds_path = "${image_path}/packages"
+
+            if(params.PACKAGES_PATH.trim()) {
+                feeds_path = params.PACKAGES_PATH.trim()
+            }
+
+            if(feeds_path.endsWith('/')) {
+                feeds_path = feeds_path.substring(0, feeds_path.length() - 1)
+            }
+
+            sh "echo 'sed -E -i \"s;http://.+?/openwrt/.+?/pistachio/marduk/packages;${feeds_path};g\" \
+                /etc/opkg/distfeeds.conf' > /dev/ttyUSB0"
+        }
         sh "sshpass -p 'root' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             root@${env.WAN_IP} \"/root/ota_verify.sh 192.168.0.2 && rm /root/ota_*\""
     }
