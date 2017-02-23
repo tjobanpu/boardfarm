@@ -17,3 +17,14 @@ class OpenwrtVersion(rootfs_boot.RootFSBootTest):
         self.result_message = 'Openwrt release is "%(RELEASE)s", revision "%(REVISION)s", and codename "%(CODENAME)s".' % info
         self.logged['rev'] = info['REVISION']
         self.logged['name'] = info['CODENAME']
+
+class DeviceInfo(rootfs_boot.RootFSBootTest):
+    '''Check device information of Ci40 board.'''
+    def runTest(self):
+        board.sendline('\ncat /etc/device_info')
+        board.expect('cat /etc/device_info', timeout=6)
+        board.expect('DEVICE_MANUFACTURER=\'Imagination Technologies\'')
+        board.expect('DEVICE_MANUFACTURER_URL=\'www.imgtec.com\'')
+        board.expect('DEVICE_PRODUCT=\'Creator Ci40\\(marduk\\)\'')
+        board.expect('DEVICE_REVISION=\'v0\'') # Until CreatorDev/openwrt#293 is fixed
+        board.expect(prompt)
