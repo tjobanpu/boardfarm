@@ -36,8 +36,23 @@ class CheckQosScripts(rootfs_boot.RootFSBootTest):
 class OpkgUpdate(rootfs_boot.RootFSBootTest):
     '''Opkg is able to update list of packages.'''
     def runTest(self):
-        board.sendline('\nopkg update && echo "All package lists updated"')
+        board.sendline("\nopkg update | tee opkg.txt && ! grep 'Signature check failed' opkg.txt"
+                        "&& echo 'All package lists updated' && rm opkg.txt")
         board.expect('Updated list of available packages')
         board.expect('All package lists updated')
         board.expect(prompt)
 
+    def recover(self):
+        board.sendline('\nrm opkg.txt')
+        board.expect(prompt)
+
+class OpkgInstall(rootfs_boot.RootFSBootTest):
+    '''Opkg is able to install selected packages'''
+    def runTest(self):
+        # One package per feed: packages, openwrt-routing, openwrt-managements,
+        # ci40-platform-feed, telephony, luci
+        packages = [ "nano", "mrd6", "shtool", "glog", "miax", "luci-mod-rpc" ]
+        for pkg in packages:
+            board.sendline("\nopkg install {}".format(pkg))
+            board.expect("Configuring {}".format(pkg))
+            board.expect(prompt)
