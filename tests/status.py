@@ -72,6 +72,52 @@ class IfconfigCheck(rootfs_boot.RootFSBootTest):
         board.expect(prompt)
         self.result_message = 'ifconfig shows ip addresses: %s' % tmp
 
+class MacAddressCheck(rootfs_boot.RootFSBootTest):
+    '''Checked MAC addresses for all interfaces.'''
+    def __checkMac(self, mac_address, base_mac, mac_sequence):
+        result = int(base_mac, base=16) + mac_sequence
+        if mac_address:
+            mac_address = re.sub('[:]', '', mac_address.upper())[-6:]
+            if result == int(mac_address, base=16):
+                self.result_message = 'MAC addresses are sequential'
+            else:
+                raise ValueError('MAC addresses are not sequential')
+        else:
+            raise ValueError('Could not find appropriate MAC address')
+
+    def runTest(self):
+        board.sendline('\nhexdump -n 6 -v -e \'8/1 "%02X" "\n"\' /proc/device-tree/uccp@18480000/mac-address0')
+        board.expect('mac-address0')
+        board.expect(prompt)
+        mac0 = re.search(r'0019F5([A-F0-9]{2}){3}', board.before).group()
+        mac0 = mac0[-6:]
+        board.sendline('\nhexdump -n 6 -v -e \'8/1 "%02X" "\n"\' /proc/device-tree/uccp@18480000/mac-address1')
+        board.expect('mac-address1')
+        board.expect(prompt)
+        mac1 = re.search(r'0019F5([A-F0-9]{2}){3}', board.before).group()
+        self.__checkMac(mac1, mac0, 1)
+        board.sendline('\nhcitool dev')
+        board.expect('hci0')
+        board.expect(prompt)
+        mac2 = re.search(r'00:19:F5(:[A-F0-9]{2}){3}', board.before).group()
+        self.__checkMac(mac2, mac0, 2)
+        board.sendline('\ncat /sys/class/net/eth0/address')
+        board.expect('eth0/address')
+        board.expect(prompt)
+        mac3 = re.search(r'00:19:f5(:[a-f0-9]{2}){3}', board.before).group()
+        self.__checkMac(mac3, mac0, 3)
+        board.sendline('\ncat /sys/class/net/lowpan0/address')
+        board.expect('lowpan0/address')
+        board.expect(prompt)
+        # skipping mac4, it's a placeholder to represent MAC address for Mesh interface
+        mac5 = re.search(r'02:19:f5:ff:fe(:[a-f0-9]{2}){3}', board.before).group()
+        self.__checkMac(mac5, mac0, 5)
+        board.sendline('\ncat /sys/class/net/wpan0/address')
+        board.expect('wpan0/address')
+        board.expect(prompt)
+        mac5 = re.search(r'02:19:f5:ff:fe(:[a-f0-9]{2}){3}', board.before).group()
+        self.__checkMac(mac5, mac0, 5)
+
 class MemoryUse(rootfs_boot.RootFSBootTest):
     '''Checked memory use.'''
     def runTest(self):
