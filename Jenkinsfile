@@ -14,6 +14,9 @@ properties([
             description:
             'Either path directly to the image, or path to a Jenkins job from where to get the image',
             name: "IMAGE_PATH"),
+        stringParam(defaultValue: 'ci40_passed_tests',
+            description: 'Name of testsuite to run on BoardFarm',
+            name: "TEST_SUITE"),
     ])
 ])
 
@@ -108,7 +111,7 @@ node('boardfarm') {
         ])
         sh "mkdir -p '${WORKSPACE}/results'"
         sh "export USER='jenkins'; \
-            ./bft -x ci40_passed_tests -n ci40_dut \
+            ./bft -x ${params.TEST_SUITE} -n ci40_dut \
             -o ./results -c ./boardfarm_config.json -y"
 
         junit 'results/test_results.xml'
