@@ -27,6 +27,10 @@ node('boardfarm') {
         def image_path = params.IMAGE_PATH.trim()
         def image_name = ""
 
+        if(image_path.endsWith('/')) {
+            image_path = image_path.substring(0, image_path.length() - 1)
+        }
+
         if(image_path) {
             /* Match is not serialisable, we cannot save it in a variable to use later */
             if(!(image_path.trim() =~ /(?<=\/)([^\/]+)\.ubi$/)) {
@@ -42,15 +46,11 @@ node('boardfarm') {
             }
             else {
                 image_name = (image_path.trim() =~ /(?<=\/)([^\/]+)\.ubi$/)[0][0]
-                image_path = image_path.replace(image_name, "")
+                image_path = image_path.replace("/" + image_name, "")
             }
         }
         else {
             error("Passed null image path")
-        }
-
-        if(image_path.endsWith('/')) {
-            image_path = image_path.substring(0, image_path.length() - 1)
         }
 
         def dl_path = "${image_path}/${image_name}"
