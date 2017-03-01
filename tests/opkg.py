@@ -51,7 +51,7 @@ class OpkgInstall(rootfs_boot.RootFSBootTest):
     def runTest(self):
         # One package per feed: packages, openwrt-routing, openwrt-managements,
         # ci40-platform-feed, telephony, luci
-        packages = [ "nano", "mrd6", "shtool", "glog", "miax", "luci-mod-rpc" ]
+        packages = [ "nano", "mrd6", "libssh", "glog", "miax", "luci-mod-rpc" ]
         for pkg in packages:
             board.sendline("\nopkg install {}".format(pkg))
             board.expect("Configuring {}".format(pkg))
