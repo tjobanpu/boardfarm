@@ -56,6 +56,11 @@ class OpkgInstall(rootfs_boot.RootFSBootTest):
             board.sendline("\nopkg install {}".format(pkg))
             board.expect("Configuring {}".format(pkg))
             board.expect(prompt)
+            board.sendline('\nopkg list-installed | grep {}'.format(pkg))
+            try:
+                board.expect('{} - '.format(pkg)) # pass if installed
+            except:
+                assert False # fail if not installed
 
 class OpkgRemove(rootfs_boot.RootFSBootTest):
     '''Opkg is able to remove selected packages and their dependencies, if any'''
