@@ -56,3 +56,26 @@ class OpkgInstall(rootfs_boot.RootFSBootTest):
             board.sendline("\nopkg install {}".format(pkg))
             board.expect("Configuring {}".format(pkg))
             board.expect(prompt)
+
+class OpkgRemove(rootfs_boot.RootFSBootTest):
+    '''Opkg is able to remove selected packages and their dependencies, if any'''
+    def runTest(self):
+        # One package per feed: packages, openwrt-routing, openwrt-managements,
+        # ci40-platform-feed, telephony, luci, kernel-module
+        packages = [ "nano", "mrd6", "libssh", "glog", "miax", "luci-mod-rpc" , "kmod-usb-net-qmi-wwan" ]
+        for pkg in packages:
+            board.sendline('\nopkg remove --autoremove {}'.format(pkg))
+            board.expect('Removing package {}'.format(pkg))
+            board.expect(prompt)
+            board.sendline('\nopkg list-installed | grep {}'.format(pkg))
+            try:
+                board.expect('{} - '.format(pkg))
+                assert False # fail if installed
+            except:
+                pass   # pass if not installed
+        # Check for removing packages which are not installed or already removed
+        for pkg in packages:
+            board.sendline("\nopkg remove --autoremove {}".format(pkg))
+            board.expect("No packages removed")
+            board.expect(prompt)
+
