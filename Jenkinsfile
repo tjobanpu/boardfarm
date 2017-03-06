@@ -1,3 +1,21 @@
+def configureDut() {
+    sh 'echo "ifconfig eth0 up" > /dev/ttyUSB0'
+    sh 'echo "ifconfig eth1 up" > /dev/ttyUSB0'
+    sh 'sleep 10'
+    sh 'echo "ifconfig eth0 192.168.1.1" > /dev/ttyUSB0'
+    sh 'echo "ifconfig eth1 192.168.0.2" > /dev/ttyUSB0'
+
+    sh 'echo "iptables -A forwarding_rule -i eth0 -j ACCEPT" > /dev/ttyUSB0'
+    sh 'echo "iptables -A forwarding_rule -i eth1 -j ACCEPT" > /dev/ttyUSB0'
+    sh 'echo "iptables -A forwarding_rule -o eth0 -j ACCEPT" > /dev/ttyUSB0'
+    sh 'echo "iptables -A forwarding_rule -o eth1 -j ACCEPT" > /dev/ttyUSB0'
+
+    sh 'echo "route add default gw 192.168.0.1" > /dev/ttyUSB0'
+    sh 'sleep 10'
+    sh 'echo "sed -i \'$ a nameserver 8.8.4.4\' /etc/resolv.conf" > /dev/ttyUSB0'
+    sh 'sleep 10'
+}
+
 properties([
     buildDiscarder(logRotator(numToKeepStr: '10')),
     parameters([
@@ -56,6 +74,10 @@ node('boardfarm') {
         def dl_path = "${image_path}/${image_name}"
         sh "wget '${dl_path}' -O ${env.WEBSERVER_PATH}/openwrt.ubi"
 
+        /* Reconfigure the DUT in case it came back from a reboot and no networking
+           is available */
+        configureDut();
+
         def wan_ip = env.WAN_IP
         sh "sshpass -p 'root' scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             ${env.OTA_DIRECTORY}/ota_update.sh ${env.OTA_DIRECTORY}/ota_verify.sh root@${wan_ip}:~/"
@@ -63,21 +85,7 @@ node('boardfarm') {
             root@${wan_ip} '/root/ota_update.sh http://${env.WEBSERVER_IP}/openwrt.ubi 192.168.0.2'"
         sh 'sleep 180'
 
-        sh 'echo "ifconfig eth0 up" > /dev/ttyUSB0'
-        sh 'echo "ifconfig eth1 up" > /dev/ttyUSB0'
-        sh 'sleep 10'
-        sh 'echo "ifconfig eth0 192.168.1.1" > /dev/ttyUSB0'
-        sh 'echo "ifconfig eth1 192.168.0.2" > /dev/ttyUSB0'
-
-        sh 'echo "iptables -A forwarding_rule -i eth0 -j ACCEPT" > /dev/ttyUSB0'
-        sh 'echo "iptables -A forwarding_rule -i eth1 -j ACCEPT" > /dev/ttyUSB0'
-        sh 'echo "iptables -A forwarding_rule -o eth0 -j ACCEPT" > /dev/ttyUSB0'
-        sh 'echo "iptables -A forwarding_rule -o eth1 -j ACCEPT" > /dev/ttyUSB0'
-
-        sh 'echo "route add default gw 192.168.0.1" > /dev/ttyUSB0'
-        sh 'sleep 10'
-        sh 'echo "sed -i \'$ a nameserver 8.8.4.4\' /etc/resolv.conf" > /dev/ttyUSB0'
-        sh 'sleep 10'
+        configureDut();
 
         if(params.OVERRIDE_PACKAGES) {
             def feeds_path = "${image_path}/packages"
