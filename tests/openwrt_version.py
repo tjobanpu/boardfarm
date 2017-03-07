@@ -26,5 +26,5 @@ class DeviceInfo(rootfs_boot.RootFSBootTest):
         board.expect('DEVICE_MANUFACTURER=\'Imagination Technologies\'')
         board.expect('DEVICE_MANUFACTURER_URL=\'www.imgtec.com\'')
         board.expect('DEVICE_PRODUCT=\'Creator Ci40\\(marduk\\)\'')
-        board.expect('DEVICE_REVISION=\'v0\'') # Until CreatorDev/openwrt#293 is fixed
+        board.expect('DEVICE_REVISION=\'v7\\+\'')
         board.expect(prompt)
