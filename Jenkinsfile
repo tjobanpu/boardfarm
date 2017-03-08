@@ -100,6 +100,10 @@ node('boardfarm') {
 
             sh "echo 'sed -E -i \"s;http://.+?/openwrt/.+?/pistachio/marduk/packages;${feeds_path};g\" \
                 /etc/opkg/distfeeds.conf' > /dev/ttyUSB0"
+
+            // LEDE will always be in same path within releases/<version>/ or snapshots/
+            sh "echo 'sed -E -i \"s;http[s]?.*/(releases/.*/|snapshots/);${feeds_path}/;g\" \
+                /etc/opkg/distfeeds.conf' > /dev/ttyUSB0"
         }
         sh "sshpass -p 'root' ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             root@${wan_ip} \"/root/ota_verify.sh 192.168.0.2 && rm /root/ota_*\""
